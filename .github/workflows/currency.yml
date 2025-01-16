@@ -1,7 +1,7 @@
 name: Desafio-Currency
 
 on:
-    pull:
+    push:
         tags: [ 'v.*.*' ]
 
 jobs:

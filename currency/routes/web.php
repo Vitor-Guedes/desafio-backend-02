@@ -12,11 +12,3 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
-
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
-
-$router->get('/api', function () use ($router) {
-    return response()->json(['status' => true]);
-});

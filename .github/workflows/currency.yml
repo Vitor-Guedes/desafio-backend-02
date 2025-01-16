@@ -37,5 +37,5 @@ jobs:
             - name: Migration e Cache
               run: | 
                 docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php artisan migrate --force
-                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php cache:table
-                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php cache:clear
+                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php artisan cache:table
+                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php artisan cache:clear

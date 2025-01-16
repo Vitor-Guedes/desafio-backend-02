@@ -12,3 +12,7 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+
+$router->get('/', function () {
+    return response()->json(['status' => true], 200);
+});

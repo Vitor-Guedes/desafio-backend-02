@@ -1,0 +1,43 @@
+name: Desafio-Currency
+
+on:
+    pull:
+        tags: [ 'v.*.*' ]
+
+jobs:
+    build:
+        runs-on:
+            desafio-currency
+        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Get Tag Version
+              id: get_tag
+              run: echo "TAG_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+            - name: Build Docker Image
+              run: |
+                echo "Building Docker image with tag: $TAG_VERSION"
+                docker image build -t php-redis:$TAG_VERSION .
+
+            - name: Subir Container php-redis
+              run: docker run -p 127.0.0.1:8000:8000 -v $(pwd):/var/www/html --name php-redis-$TAG_VERSION php-redis:$TAG_VERSION php -S 0.0.0.0:8000 -t /var/www/html/currency/public
+
+            - name: Redis Server
+              run: |
+                docker exec -t php-redis-$TAG_VERSION service redis-server status
+                docker exec -t php-redis-$TAG_VERSION service redis-server start
+
+            - name: Instalar Dependencias
+              run: docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION composer update
+
+            - name: Copy Env
+              run: docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+            - name: Migration e Cache
+              run: | 
+                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php artisan migrate
+                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php cache:table
+                docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION php cache:clear

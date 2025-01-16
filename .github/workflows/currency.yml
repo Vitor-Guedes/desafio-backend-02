@@ -26,9 +26,7 @@ jobs:
               run: docker run -d -p 127.0.0.1:8000:8000 -v $(pwd):/var/www/html --name php-redis-$TAG_VERSION php-redis:$TAG_VERSION php -S 0.0.0.0:8000 -t /var/www/html/currency/public
 
             - name: Redis Server
-              run: |
-                docker exec -t php-redis-$TAG_VERSION service redis-server status
-                docker exec -t php-redis-$TAG_VERSION service redis-server start
+              run: docker exec -t php-redis-$TAG_VERSION service redis-server start
 
             - name: Instalar Dependencias
               run: docker exec -t -w /var/www/html/currency php-redis-$TAG_VERSION composer update

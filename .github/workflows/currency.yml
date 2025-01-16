@@ -23,7 +23,7 @@ jobs:
                 docker image build -t php-redis:$TAG_VERSION .
 
             - name: Subir Container php-redis
-              run: docker run -p 127.0.0.1:8000:8000 -v $(pwd):/var/www/html --name php-redis-$TAG_VERSION php-redis:$TAG_VERSION php -S 0.0.0.0:8000 -t /var/www/html/currency/public
+              run: docker run -d -p 127.0.0.1:8000:8000 -v $(pwd):/var/www/html --name php-redis-$TAG_VERSION php-redis:$TAG_VERSION php -S 0.0.0.0:8000 -t /var/www/html/currency/public
 
             - name: Redis Server
               run: |

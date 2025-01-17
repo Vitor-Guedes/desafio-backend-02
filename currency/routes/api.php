@@ -23,7 +23,7 @@ $router->delete('api/currency/{code}', [
     'uses' => 'CurrencyController@destroy'
 ]);
 
-$router->get('api/currency', [
+$router->get('api/currency/{code}', [
     'as' => 'api.currency.quote',
     'uses' => 'CurrencyController@quote'
 ]);

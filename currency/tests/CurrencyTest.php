@@ -89,43 +89,57 @@ class CurrencyTest extends TestCase
         $code = "USD";
         $codeIn = "BRL";
         $combine = "{$code}-{$codeIn}";
+
+        /**
+         * @todo: Fazer consulta na api externa e atribuir a variavel $expected
+         * obs: Por enquanto esta chumbado para não exceder a quantidade de requests da api externa
+         */
+        $expected = '[{"code":"USD","codein":"BRL","name":"Dólar Americano/Real Brasileiro","high":"6.088","low":"5.9935","varBid":"0.0101","pctChange":"0.17","bid":"6.059","ask":"6.061","timestamp":"1737142381","create_date":"2025-01-17 16:33:01"}]';
         
+        $response = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
+
+        $response->assertResponseOk();
+        $response->seeJson(json_decode($expected, true));
+        // $response->seeJson([
+        //     [
+        //         "code" => $code,
+        //         "codein" => $codeIn,
+        //         "name" => "",
+        //         "high" => "",
+        //         "low" => "",
+        //         "varBid" => 0.0000,
+        //         "pctChange" => 0.0000,
+        //         "bid" => 0.0000,
+        //         "ask" => 0.0000,
+        //         "timestamps" => "",
+        //         "create_date" => "yyyy-mm-dd hh:ii:ss"
+        //     ]
+        // ]);
+    }
+
+    public function test_must_be_able_to_bring_the_quotation_of_new_currencies_registered_in_the_database()
+    {
+        $currency = $this->createNewCurrency();
+        $currency->refresh();
+
+        $combine = "{$currency->code}-{$currency->code_in}";
+
         $response = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
 
         $response->assertResponseOk();
         $response->seeJson([
             [
-                "code" => $code,
-                "codein" => $codeIn,
-                "name" => "",
+                "code" => $currency->code,
+                "code_in" => $currency->code_in,
+                "name" => $currency->description,
                 "high" => "",
                 "low" => "",
-                "varBid" => 0.0000,
-                "pctChange" => 0.0000,
-                "bid" => 0.0000,
-                "ask" => 0.0000,
-                "timestamps" => "",
-                "create_date" => "yyyy-mm-dd hh:ii:ss"
-            ]
-        ]);
-    }
-
-    public function test_must_be_able_to_bring_the_quotation_of_new_currencies_registered_in_the_database()
-    {
-        $response->asserResponseOk();
-        $response->seeJson([
-            [
-                "code" => $code,
-                "codein" => $codeIn,
-                "name" => "",
-                "high" => "",
-                "low" => "",
-                "varBid" => 0.0000,
-                "pctChange" => 0.0000,
-                "bid" => 0.0000,
-                "ask" => 0.0000,
-                "timestamps" => "",
-                "create_date" => "yyyy-mm-dd hh:ii:ss"
+                "varBid" => 0,
+                "pctChange" => 0,
+                "bid" => $currency->bid,
+                "ask" => $currency->ask,
+                "timestamp" => $currency->timestamp,
+                // "create_date" => "yyyy-mm-dd hh:ii:ss"
             ]
         ]);
     }

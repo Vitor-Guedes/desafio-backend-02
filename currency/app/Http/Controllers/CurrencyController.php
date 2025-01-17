@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Dto\CurrencyDto;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Service\CurrencyService;
-use Illuminate\Http\Request;
-use App\Dto\Currency\DeleteDto as CurrencyDeleteDtop;
+use App\Dto\Currency\DeleteDto as CurrencyDeleteDto;
 
 class CurrencyController extends Controller
 {
+    /**
+     * Register new currency quotation
+     * 
+     * @param CurrencyService $currencyService
+     * @param Request $request
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(CurrencyService $currencyService, Request $request)
     {
         $validated = $this->validate($request, [
@@ -22,12 +31,33 @@ class CurrencyController extends Controller
         return response()->json([], Response::HTTP_CREATED);
     }
 
+    /**
+     * Delete currency or currencies quotes
+     * 
+     * @param string $code ":code-:code_in" - "USD-D&D"
+     * @param CurrencyService $currencyService
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroy(string $code, CurrencyService $currencyService)
     {
-        $currencyDto = app(CurrencyDeleteDtop::class, ['code' => $code]);
+        $currencyDto = app(CurrencyDeleteDto::class, ['code' => $code]);
         $currencyService->destroy(...$currencyDto->toArray());
         return response()->json([], Response::HTTP_OK);
     }
 
-    public function quote()
+    /**
+     * Retrive currency quote 
+     * 
+     * @param string $code ":code-:code_in" - "USD-D&D"
+     * @param CurrencyService $currencyService
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function quote(string $code, CurrencyService $currencyService)
+    {
+        $currencyDto = app(CurrencyDto::class, ['code' => $code]);
+        $quotes = $currencyService->getQuote(...$currencyDto->toArray());
+        return response()->json($quotes, 200);
+    }
 }

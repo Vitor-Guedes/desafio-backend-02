@@ -2,19 +2,9 @@
 
 namespace App\Dto\Currency;
 
-class DeleteDto
-{
-    public function __construct(
-        protected string $code
-    )
-    { }
+use App\Dto\CurrencyDto;
 
-    public function toArray(): array
-    {
-        if (strpos($this->code, '-')) {{
-            [$currency, $currencyIn] = explode('-', $this->code);
-            return compact('currency', 'currencyIn');
-        }}
-        return ['currency' => $this->code];
-    }
+class DeleteDto extends CurrencyDto
+{
+    
 }

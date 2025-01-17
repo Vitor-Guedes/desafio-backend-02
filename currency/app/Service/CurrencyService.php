@@ -2,67 +2,109 @@
 
 namespace App\Service;
 
+use Closure;
 use App\Models\Currency;
+use App\Http\Resources\QuoteResource;
+use Illuminate\Database\Eloquent\Model;
 
 class CurrencyService
 {
-    public function store(array $data)
+    public function __construct(
+        protected ExternalService $externalService
+    ) { }
+
+    /**
+     * @param array $data
+     * 
+     * @return Model
+     */
+    public function store(array $data): Model
     {
         return Currency::create($data);
     }
 
-    public function destroy(string $currency, string $currencyIn = '')
+    /**
+     * @param string $currency
+     * @param string $currencyIn
+     * 
+     * @return bool
+     */
+    public function destroy(string $currency, string $currencyIn = ''): bool
     {
         $builder = Currency::where('code', $currency);
+        
         if ($currencyIn) {
             $builder->where('code_in', $currencyIn);
         }
-        if (! $builder->count()) {
-            return false;
+
+        return $builder->count() ? $builder->delete() : false; 
+    }
+
+    /**
+     * @param string $currency
+     * @param string $currencyIn
+     * 
+     * @return array
+     */
+    public function getQuote(string $currency, string $currencyIn = ''): array
+    {
+        return $this->cache("{$currency}-{$currencyIn}", function () use ($currency, $currencyIn) {
+            if ($this->currenciesIsExternal($currency, $currencyIn)) {
+                return $this->externalService()->getQuote($currency, $currencyIn);
+            }
+
+            return QuoteResource::collection(Currency::where('code', $currency)
+                ->where('code_in', $currencyIn)
+                ->orderBy('timestamp', 'desc')
+                ->limit(1)
+                ->get()
+                ?->toArray() ?: []);
+        });
+    }
+
+    /**
+     * @param string $key
+     * @param Closure
+     * 
+     * @return mixed
+     */
+    public function cache(string $key, Closure $resolve): mixed
+    {
+        $redis = app('redis');
+
+        if ($redis->exists($key)) {
+            return json_decode($redis->get($key), true);
         }
-        return $builder->delete();
+
+        $result = $resolve();
+
+        $redis->set($key, json_encode($result));
+        $redis->expire($key, 60 * 3);
+
+        return $result;
     }
 
-    // protected array $quotes = [];
-
-    // public function __construct(
-    //     protected string $from,
-    //     protected string $to,
-    //     protected float $amount
-    // )
-    // {
-    //     $this->loadCacheQuotation();
-    // }
-
-    protected function loadCacheQuotation()
+  /**
+     * @param string $currency
+     * @param string $currencyIn
+     * 
+     * @return bool
+     */
+    protected function currenciesIsExternal(string $currency, string $currencyIn = ''): bool
     {
-        $fromTo = "{$this->from}-{$this->to}";
-        $key = "cache_quote_{$fromTo}";
-
-        if (app('redis')->exists($key)) {
-            $this->quotes = json_decode(app('redis')->get($key), true);
-            return ;
+        $externalCurrency = ['USD', 'BRL', 'EUR', 'BTC', 'ETH'];
+        if ($currencyIn) {
+            return in_array($currency, $externalCurrency) 
+                && in_array($currencyIn, $externalCurrency);;    
         }
-
-        $baseUrl = 'https://economia.awesomeapi.com.br/json/' . $fromTo; 
-
-        $quote = file_get_contents($baseUrl);
-
-        $this->quotes[$fromTo] = json_decode($quote, true)[0];
-        
-        app('redis')->set($key, json_encode($this->quotes));
-        app('redis')->expire($key, 60 * 3);
+        return in_array($currency, $externalCurrency);
     }
 
-    public function convert()
+    /**
+     * @return object<\App\Service\ExternalService>
+     */
+    protected function externalService(): object
     {
-        return [
-            'result' => $this->amount * $this->getBuyPrice()
-        ];
-    }
-
-    protected function getBuyPrice()
-    {
-        return $this->quotes["{$this->from}-{$this->to}"]['ask'];
+        return $this->externalService;
     }
 }

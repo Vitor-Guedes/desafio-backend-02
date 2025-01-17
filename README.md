@@ -73,7 +73,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 > | name | rule | data type | description |
 > | ---- | ---- | --------- | ----------- |
 > | code | min:3, max:5, required (USD)| string | Código da moeda de lastro (padrão USD) |
-> | codein | min:3, max:5, required (D&D)| string | Código da moeda |
+> | code_in | min:3, max:5, required (D&D)| string | Código da moeda |
 > | description | min:10, max:100, required| string | Descrição da Moeda (Dolar Americano / D&D Peça de ouro) |
 > | bid | required | float (10,4) | Valor de compra da moeda (1 unidade - 1$) |
 > | ask | required | float (10,4) | Valor de venda da moeda (1 unidade - 1$) |
@@ -92,7 +92,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 ```json
 {
     "code": "USD",
-    "codeIn": "D&D",
+    "code_in": "D&D",
     "description": "Dolar Americano/D&D Peça de ouro",
     "bid": 2.2500,
     "ask": 2.2500
@@ -109,7 +109,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 ---
 
 <details>
-<summary> <code>GET /api/currency/{:code-:codein} (Consulta cotação da moeda) </code> </summary>
+<summary> <code>GET /api/currency/{:code-:code_in} (Consulta cotação da moeda) </code> </summary>
 
 Consulta a cotação das moedas informadas na url.
 
@@ -117,7 +117,7 @@ Consulta a cotação das moedas informadas na url.
 > | name | rule | data type | description |
 > | ---- | ---- | --------- | ----------- |
 > | code | min:3, max:5, required (D&D)| string | Código da moeda - de lastro (padrão USD) |
-> | codein | min:3, max:5, required (D&D)| string | Código da moeda |
+> | code_in | min:3, max:5, required (D&D)| string | Código da moeda |
 
 ### Exemplo
 ```
@@ -127,7 +127,7 @@ http://localhost:8000/currency/USD-D&D
 ### Responses
 > | HTTP Code | Content-Type | Body |
 > | --------- | ------------ | ---- |
-> | 200 | application/json | [{"code":"USD","codein":"D&D","name":"Dólar Americano/D&D$ peça de ouro","high":"6.0708","low":"5.9935","varBid":"0.0064","pctChange":"0.11","bid":"6.0558","ask":"6.0568","timestamp":"1737118799","create_date":"2025-01-17 09:59:59"}] |
+> | 200 | application/json | [{"code":"USD","code_in":"D&D","name":"Dólar Americano/D&D$ peça de ouro","high":"6.0708","low":"5.9935","varBid":"0.0064","pctChange":"0.11","bid":"6.0558","ask":"6.0568","timestamp":"1737118799","create_date":"2025-01-17 09:59:59"}] |
 > | 500 | application/json | {"error": {"message": "Erro interno"}} |
 </details>
 

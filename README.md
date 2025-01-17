@@ -56,7 +56,7 @@ vendor/bin/phpunit
 # Aplicação
 
 Para cotação das moedas existentes (USD, BRL, EUR, BTC, ETH) vai ser consultada a api externa [https://economia.awesomeapi.com.br/](https://economia.awesomeapi.com.br/) para o dia atual.
-A apliação vai permitir o cadastro de novas moedas seguindo o mesmo padrão da api external.
+A apliação vai permitir o cadastro de novas moedas seguindo o mesmo padrão da api externa.
 
 ---
 
@@ -77,6 +77,27 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 > | description | min:10, max:100, required| string | Descrição da Moeda (Dolar Americano / D&D Peça de ouro) |
 > | bid | required | float (10,4) | Valor de compra da moeda (1 unidade - 1$) |
 > | ask | required | float (10,4) | Valor de venda da moeda (1 unidade - 1$) |
+
+### Request - Exemplo
+
+#### Headers
+
+> | name | value |
+> | ---- | ----- |
+> | Accept | application/json |
+> | Content-type | application/json |
+
+#### Body
+
+```json
+{
+    "code": "USD",
+    "codeIn": "D&D",
+    "description": "Dolar Americano/D&D Peça de ouro",
+    "bid": 2.2500,
+    "ask": 2.2500
+}
+```
 
 ### Responses
 > | HTTP Code | Content-Type | Body |

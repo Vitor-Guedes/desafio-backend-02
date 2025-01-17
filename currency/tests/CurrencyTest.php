@@ -2,12 +2,47 @@
 
 namespace Tests;
 
+use Laravel\Lumen\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
 class CurrencyTest extends TestCase
 {
+    use DatabaseMigrations;
+
     public function test_must_be_able_to_record_a_quote_for_a_new_currency()
     {
+        $payload = [
+            "code" => "USD",
+            "code_in" => "D&D",
+            "description" => "Dolar Americano/D&D Peça de ouro",
+            "bid" => 2.2500,
+            "ask" => 2.2500
+        ];
+
+        $response = $this->json('POST', route('api.currency.store'), $payload);
+
+        $response->seeStatusCode(201);
+        $this->seeInDatabase('quotes', $payload);
+    }
+
+    protected function createNewCurrency()
+    {
+        $currency = [
+            "code" => "USD",
+            "code_in" => "D&D",
+            "description" => "Dolar Americano/D&D Peça de ouro",
+            "bid" => 2.2500,
+            "ask" => 2.2500
+        ];
+        return \App\Models\Currency::create($currency);
+    }
+
+    public function test_must_be_able_to_remove_a_coin_from_the_application()
+    {   
+        $newId = $this->createNewCurrency();
+
+        $response = $this->json('DELETE', route('api.currency.delete', ['id' => $newId]));
+
         $response->assertResponseOk();
     }
 

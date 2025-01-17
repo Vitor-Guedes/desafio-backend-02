@@ -62,10 +62,10 @@ A apliação vai permitir o cadastro de novas moedas seguindo o mesmo padrão da
 
 **Api** - Gerenciamento das moedas e cotações.
 
-## currency
+## Currency
 
 <details open>
-<summary> <code>POST /currency (Cria nova quotação para a moeda) </code> </summary>
+<summary> <code>POST /api/currency (Cria nova quotação para a moeda) </code> </summary>
 
 Cada inserção nesse endpoint criar um registro na base que vai servir de histórico do valor da moeda.
 
@@ -109,7 +109,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 ---
 
 <details>
-<summary> <code>GET /currency/{:code-:codein} (Consulta cotação da moeda) </code> </summary>
+<summary> <code>GET /api/currency/{:code-:codein} (Consulta cotação da moeda) </code> </summary>
 
 Consulta a cotação das moedas informadas na url.
 
@@ -128,6 +128,33 @@ http://localhost:8000/currency/USD-D&D
 > | HTTP Code | Content-Type | Body |
 > | --------- | ------------ | ---- |
 > | 200 | application/json | [{"code":"USD","codein":"D&D","name":"Dólar Americano/D&D$ peça de ouro","high":"6.0708","low":"5.9935","varBid":"0.0064","pctChange":"0.11","bid":"6.0558","ask":"6.0568","timestamp":"1737118799","create_date":"2025-01-17 09:59:59"}] |
+> | 500 | application/json | {"error": {"message": "Erro interno"}} |
+</details>
+
+---
+
+<details>
+<summary> <code>DELETE /api/currncy/{:code} (Deleta a Moeda e suas quotações) </code> </summary>
+
+Remove da base da aplicação todos os registros referente a moeda informada.
+
+### Request - Parameters
+> | name | rule | data type | description |
+> | ---- | ---- | --------- | ----------- |
+> | code | min:3, required (D&D ou D&D-USD)| string | Código da moeda. Ou combinação de Codigos |
+
+### Exemplo
+```
+http://localhost:8000/currency/D&D
+http://localhost:8000/currency/D&D-USD
+http://localhost:8000/currency/D&D-BRL
+```
+
+### Responses
+> | HTTP Code | Content-Type | Body |
+> | --------- | ------------ | ---- |
+> | 200 | application/json | {"from": "USD", "to": "D&D", "amount": 2.00, "change": 4.00} |
+> | 422 | application/json | {"error": {"message": "Atributo x é obrigatório"}} |
 > | 500 | application/json | {"error": {"message": "Erro interno"}} |
 </details>
 

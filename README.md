@@ -70,7 +70,7 @@ A apliação vai permitir o cadastro de novas moedas seguindo o mesmo padrão da
 Cada inserção nesse endpoint criar um registro na base que vai servir de histórico do valor da moeda.
 
 ### Request - Parameters
-> | name | type | data type | description |
+> | name | rule | data type | description |
 > | ---- | ---- | --------- | ----------- |
 > | code | min:3, max:5, required (USD)| string | Código da moeda de lastro (padrão USD) |
 > | codein | min:3, max:5, required (D&D)| string | Código da moeda |
@@ -114,7 +114,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 Consulta a cotação das moedas informadas na url.
 
 ### Request - Parameters
-> | name | type | data type | description |
+> | name | rule | data type | description |
 > | ---- | ---- | --------- | ----------- |
 > | code | min:3, max:5, required (D&D)| string | Código da moeda - de lastro (padrão USD) |
 > | codein | min:3, max:5, required (D&D)| string | Código da moeda |
@@ -139,7 +139,7 @@ http://localhost:8000/currency/USD-D&D
 Converte o valor do parametro **amount** da moeda **from** para a moeda **to**. O valor informado vai ser convertido de acordo com a ultima cotação da :from-:to.
 
 ### Request - Parameters
-> | name | type | data type | description |
+> | name | rule | data type | description |
 > | ---- | ---- | --------- | ----------- |
 > | from | min:3, max:5, required (D&D)| string | Código da moeda - de lastro (padrão USD) |
 > | to | min:3, max:5, required (D&D)| string | Código da moeda |

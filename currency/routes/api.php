@@ -13,6 +13,17 @@
 |
 */
 
-$router->get('/', function () {
-    return response()->json(['status' => true], 200);
-});
+$router->post('api/currency', [
+    'as' => 'api.currency.store',
+    'uses' => 'CurrencyController@store'
+]);
+
+$router->delete('api/currency/{code}', [
+    'as' => 'api.currency.destroy',
+    'uses' => 'CurrencyController@destroy'
+]);
+
+$router->get('api/currency', [
+    'as' => 'api.currency.quote',
+    'uses' => 'CurrencyController@quote'
+]);

@@ -103,7 +103,7 @@ Cada inserção nesse endpoint criar um registro na base que vai servir de hist�
 > | HTTP Code | Content-Type | Body |
 > | --------- | ------------ | ---- |
 > | 201 | application/json | |
-> | 422 | application/json | {"error": {"message": "Atributo x é obrigatório"}} |
+> | 422 | application/json | [{"ask":["The ask field is required."],"bid":["The bid field is required."],"code":["The code field is required."],"code_in":["The code in field is required."],"description":["The description field is required."]}] |
 </details>
 
 ---

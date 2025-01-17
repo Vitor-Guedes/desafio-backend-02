@@ -39,29 +39,60 @@ class CurrencyTest extends TestCase
 
     public function test_must_be_able_to_remove_a_coin_from_the_application()
     {   
-        $newId = $this->createNewCurrency();
+        $currency = $this->createNewCurrency();
 
-        $response = $this->json('DELETE', route('api.currency.delete', ['id' => $newId]));
+        $response = $this->json('DELETE', route('api.currency.destroy', ['code' => $currency->code]));
 
         $response->assertResponseOk();
+        $this->missingFromDatabase('quotes', $currency->toArray());
+    }
+
+    public function test_must_be_able_to_delete_all_quotes_for_a_combination_of_currencies()
+    {
+        $currency = $this->createNewCurrency();
+
+        $combine = "{$currency->code}-{$currency->code_in}";
+        $response = $this->json('DELETE', route('api.currency.destroy', ['code' => $combine]));
+
+        $response->assertResponseOk();
+        $this->missingFromDatabase('quotes', $currency->toArray());
     }
 
     public function test_should_fail_when_trying_to_register_a_quote_for_a_new_currency_with_invalid_parameters()
     {
-        $response->assertStatus(422);
-        $response->seeJson([
-            'error' => [
-                'message' => [
+        $payload = [];
 
-                ]
+        $response = $this->json('POST', route('api.currency.store'), $payload);
+
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "ask" => [
+                "The ask field is required."
+            ],
+            "bid" => [
+                "The bid field is required."
+            ],
+            "code" => [
+                "The code field is required."
+            ],
+            "code_in" => [
+                "The code in field is required."
+            ],
+            "description" => [
+                "The description field is required."
             ]
         ]);
     }
 
     public function test_must_be_able_to_bring_the_quote_of_existing_currencies_from_the_extetnal_api()
     {
+        $code = "USD";
+        $codeIn = "BRL";
+        $combine = "{$code}-{$codeIn}";
+        
+        $response = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
 
-        $response->asserResponseOk();
+        $response->assertResponseOk();
         $response->seeJson([
             [
                 "code" => $code,

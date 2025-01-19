@@ -24,8 +24,8 @@ class CurrencyController extends Controller
             'code' => 'required|string|min:3|max:5',
             'code_in' => 'required|string|min:3|max:5',
             'description' => 'required|string|max:100',
-            'bid' => 'required|decimal:2,4',
-            'ask' => 'required|decimal:2,4'
+            'bid' => 'required|decimal:0,4',
+            'ask' => 'required|decimal:0,4'
         ]);
         $currencyService->store($validated);
         return response()->json([], Response::HTTP_CREATED);

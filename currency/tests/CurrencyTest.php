@@ -2,12 +2,15 @@
 
 namespace Tests;
 
-use Laravel\Lumen\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
+use Tests\Traits\CurrencyHelper;
+use Laravel\Lumen\Testing\DatabaseMigrations;
 
 class CurrencyTest extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseMigrations,
+        CurrencyHelper;
 
     public function test_must_be_able_to_record_a_quote_for_a_new_currency()
     {
@@ -23,18 +26,6 @@ class CurrencyTest extends TestCase
 
         $response->seeStatusCode(201);
         $this->seeInDatabase('quotes', $payload);
-    }
-
-    protected function createNewCurrency()
-    {
-        $currency = [
-            "code" => "USD",
-            "code_in" => "D&D",
-            "description" => "Dolar Americano/D&D Peça de ouro",
-            "bid" => 2.2500,
-            "ask" => 2.2500
-        ];
-        return \App\Models\Currency::create($currency);
     }
 
     public function test_must_be_able_to_remove_a_coin_from_the_application()
@@ -89,32 +80,12 @@ class CurrencyTest extends TestCase
         $code = "USD";
         $codeIn = "BRL";
         $combine = "{$code}-{$codeIn}";
+        $expected = file_get_contents('https://economia.awesomeapi.com.br/json/' . $combine);
 
-        /**
-         * @todo: Fazer consulta na api externa e atribuir a variavel $expected
-         * obs: Por enquanto esta chumbado para não exceder a quantidade de requests da api externa
-         */
-        $expected = '[{"code":"USD","codein":"BRL","name":"Dólar Americano/Real Brasileiro","high":"6.088","low":"5.9935","varBid":"0.0101","pctChange":"0.17","bid":"6.059","ask":"6.061","timestamp":"1737142381","create_date":"2025-01-17 16:33:01"}]';
-        
         $response = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
 
         $response->assertResponseOk();
         $response->seeJson(json_decode($expected, true));
-        // $response->seeJson([
-        //     [
-        //         "code" => $code,
-        //         "codein" => $codeIn,
-        //         "name" => "",
-        //         "high" => "",
-        //         "low" => "",
-        //         "varBid" => 0.0000,
-        //         "pctChange" => 0.0000,
-        //         "bid" => 0.0000,
-        //         "ask" => 0.0000,
-        //         "timestamps" => "",
-        //         "create_date" => "yyyy-mm-dd hh:ii:ss"
-        //     ]
-        // ]);
     }
 
     public function test_must_be_able_to_bring_the_quotation_of_new_currencies_registered_in_the_database()
@@ -123,6 +94,7 @@ class CurrencyTest extends TestCase
         $currency->refresh();
 
         $combine = "{$currency->code}-{$currency->code_in}";
+        app('redis')->del($combine);
 
         $response = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
 
@@ -138,51 +110,57 @@ class CurrencyTest extends TestCase
                 "pctChange" => 0,
                 "bid" => $currency->bid,
                 "ask" => $currency->ask,
-                "timestamp" => $currency->timestamp,
-                // "create_date" => "yyyy-mm-dd hh:ii:ss"
+                "timestamp" => $currency->timestamp
             ]
         ]);
     }
 
     public function test_must_be_able_to_convert_the_value_entered_between_the_given_currencies()
     {
-        $response->asserResponseOk();
+        $from = 'USD';
+        $to = 'BRL';
+        $amount = 20.0000;
+        $parameters = [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount
+        ];
+        $url = route('api.convert.get') . '?'. http_build_query($parameters);
+
+        $combine = "{$from}-{$to}";
+        $quote = $this->json('GET', route('api.currency.quote', ['code' => $combine]));
+        $quote = json_decode($quote->response->getContent(), true);
+        
+        $response = $this->json('GET', $url);
+        
+        $response->assertResponseOk();
         $response->seeJson([
             "from" => $from,
             "to" => $to,
-            "amount" => 1.0000,
-            "cahnge" => 3.0000
+            "amount" => $amount,
+            "change" => $amount * $quote[0]['ask']
         ]);
 
     }
 
     public function test_should_fail_when_trying_to_convert_the_value_with_invalid_parameters()
     {
-        $response->assertStatus(422);
-        $response->seeJson([
-            'error' => [
-                'message' => [
+        $parameters = [];
+        $url = route('api.convert.get') . '?'. http_build_query($parameters);
+        
+        $response = $this->json('GET', $url);
 
-                ]
+        $response->seeStatusCode(422);
+        $response->seeJson([
+            "amount" => [
+                "The amount field is required."
+            ],
+            "from" => [
+                "The from field is required."
+            ],
+            "to" => [
+                "The to field is required."
             ]
         ]);
     }
-
-    // public function test_must_be_able_to_perform_the_conversion()
-    // {
-    //     $params = [
-    //         "from" => 'USD',
-    //         "to" => 'BRL',
-    //         "amount" => 1.00
-    //     ];
-    //     $quote = file_get_contents('https://economia.awesomeapi.com.br/json/USD-BRL/1');
-    //     $expectedResult = $params['amount'] * json_decode($quote, true)[0]['ask'];
-
-    //     $response = $this->json('GET', route('api.convert'), $params);
-
-    //     $response->assertResponseOk();
-    //     $response->seeJson([
-    //         'result' => $expectedResult
-    //     ]);
-    // }
 }

@@ -27,3 +27,8 @@ $router->get('api/currency/{code}', [
     'as' => 'api.currency.quote',
     'uses' => 'CurrencyController@quote'
 ]);
+
+$router->get('api/convert', [
+    'as' => 'api.convert.get',
+    'uses' => 'ConvertController@convert'
+]);

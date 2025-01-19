@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use Closure;
 use App\Models\Currency;
 use App\Http\Resources\QuoteResource;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 class CurrencyService
 {
     public function __construct(
-        protected ExternalService $externalService
+        protected ExternalService $externalService,
+        protected CacheService $cacheService
     ) { }
 
     /**
@@ -48,7 +48,7 @@ class CurrencyService
      */
     public function getQuote(string $currency, string $currencyIn = ''): array
     {
-        return $this->cache("{$currency}-{$currencyIn}", function () use ($currency, $currencyIn) {
+        return $this->cacheService->fromCache("{$currency}-{$currencyIn}", function () use ($currency, $currencyIn) {
             if ($this->currenciesIsExternal($currency, $currencyIn)) {
                 return $this->externalService()->getQuote($currency, $currencyIn);
             }
@@ -58,33 +58,12 @@ class CurrencyService
                 ->orderBy('timestamp', 'desc')
                 ->limit(1)
                 ->get()
-                ?->toArray() ?: []);
+                ?->toArray() ?: [])
+                ->toArray(request());
         });
     }
 
     /**
-     * @param string $key
-     * @param Closure
-     * 
-     * @return mixed
-     */
-    public function cache(string $key, Closure $resolve): mixed
-    {
-        $redis = app('redis');
-
-        if ($redis->exists($key)) {
-            return json_decode($redis->get($key), true);
-        }
-
-        $result = $resolve();
-
-        $redis->set($key, json_encode($result));
-        $redis->expire($key, 60 * 3);
-
-        return $result;
-    }
-
-  /**
      * @param string $currency
      * @param string $currencyIn
      * 
